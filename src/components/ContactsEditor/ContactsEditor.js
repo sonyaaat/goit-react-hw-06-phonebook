@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
 import css from '../ContactsEditor/ContactsEditor.module.css';
-
-const ContactsEditor = ({ onSubmit }) => {
+import { addContact } from 'redux/contactsSlice';
+import Notiflix from 'notiflix';
+import { getContacts } from 'redux/selectors';
+import { useState } from 'react';
+const ContactsEditor = () => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
   const handleChange = evt => {
@@ -18,17 +20,28 @@ const ContactsEditor = ({ onSubmit }) => {
         return;
     }
   };
-  const handleSubmit = evt => {
-    evt.preventDefault();
-    if (onSubmit({ name, number }) !== 1) {
-      reset();
-    }
-  };
+  
   const reset = () => {
     setName('');
     setNumber('');
   };
-
+  const dispatch=useDispatch()
+  const contacts = useSelector(getContacts)
+  const handleSubmit=(evt)=>{
+    evt.preventDefault();
+    const form = evt.target;
+    const isAdded = contacts.some(
+          contact => contact.name.toLowerCase() === name.toLowerCase()
+        );
+        if (isAdded) {
+          Notiflix.Notify.warning(`${name} is already in contacts`);
+          return;
+        }
+    const object={name:form.elements.name.value, number:form.elements.number.value}
+    dispatch(addContact(object));
+    form.reset();
+    reset()
+  }
   return (
     <form className={css.form__add} onSubmit={handleSubmit}>
       <div className={css.form__field}>
@@ -43,8 +56,8 @@ const ContactsEditor = ({ onSubmit }) => {
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
           id="name"
-          onChange={handleChange}
           value={name}
+          onChange={handleChange}
         />
       </div>
       <div className={css.form__field}>
@@ -59,8 +72,8 @@ const ContactsEditor = ({ onSubmit }) => {
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
           id="number"
-          onChange={handleChange}
           value={number}
+          onChange={handleChange}
         />
       </div>
       <button className={css.form__button} type="submit">
@@ -68,10 +81,6 @@ const ContactsEditor = ({ onSubmit }) => {
       </button>
     </form>
   );
-};
-
-ContactsEditor.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
 };
 
 export default ContactsEditor;
