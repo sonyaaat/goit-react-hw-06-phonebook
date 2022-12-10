@@ -1,28 +1,23 @@
-import PropTypes from 'prop-types';
-import css from "../ContactsList/ContactsList.module.css"
+import css from '../ContactsList/ContactsList.module.css';
 import ContactItem from 'components/ContactItem/ContactItem';
-const ContactsList=({contacts,onDelete,items})=>{
-    return(
-        contacts.length===0 && items.length!==0?<h2 className={css.notify}>There isn`t such contact</h2>:
-        <ul className={css.list}>
-            {contacts.map(({id,name,number})=>
-            <ContactItem key={id}
-            id={id}
-            name={name}
-            number={number}
-            onDelete={onDelete}/>
-            )}
-        </ul>)
-}
-export default ContactsList
+import { getContacts, getFilter } from 'redux/selectors';
+import { useSelector } from 'react-redux';
+const ContactsList = () => {
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
+  const filterLow = filter.toLowerCase();
+  const visibleContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filterLow)
+  );
 
-ContactsList.propTypes = {
-    contacts: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        name: PropTypes.string.isRequired,
-        number: PropTypes.string.isRequired,
-      })
-    ),
-    onDelete: PropTypes.func.isRequired,
-  };
+  return visibleContacts.length === 0 && contacts.length !== 0 ? (
+    <h2 className={css.notify}>There isn`t such contact</h2>
+  ) : (
+    <ul className={css.list}>
+      {visibleContacts.map(contact => (
+        <ContactItem key={contact.id} item={contact} />
+      ))}
+    </ul>
+  );
+};
+export default ContactsList;
